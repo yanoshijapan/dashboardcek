@@ -6,59 +6,233 @@
     <title>Dashboard Cek Barang</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { font-family: 'Poppins', sans-serif; text-align: center; color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
-        th { background-color: #f8f8f8; font-weight: 500; }
-        td:nth-child(3) { word-break: break-word; min-width: 300px; }
-        .action-btn {
-            display: inline-block; padding: 8px 12px; margin: 2px;
-            border: none; border-radius: 5px; color: white;
-            text-decoration: none; font-size: 14px; cursor: pointer; text-align: center;
+        /* CSS Variables untuk Tema (Light & Dark Mode) */
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #576c7f;
+            --border-color: #e_a_e_c_f_0;
+            --shadow-color: rgba(44, 62, 80, 0.1);
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --danger-hover: #c0392b;
+            --success-hover: #229954;
+            --accent-hover: #2980b9;
         }
-        .whatsapp-btn { background-color: #25D366; }
-        .delete-btn { background-color: #e74c3c; }
-        .no-data { text-align: center; color: #888; padding: 20px; }
+
+        body.dark-mode {
+            --bg-color: #1a1a2e;
+            --card-bg-color: #16213e;
+            --text-primary: #e_a_e_c_f_0;
+            --text-secondary: #a_b_a_f_c_f;
+            --border-color: #2c3e50;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animasi Keyframes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        /* Style Dasar */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        /* Kontrol (Tombol Hapus & Dark Mode) */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .clear-all-btn {
+            background: var(--danger-color);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .clear-all-btn:hover { background: var(--danger-hover); }
+
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 10px; }
+        .theme-switch { display: inline-block; height: 26px; position: relative; width: 50px; }
+        .theme-switch input { display: none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 26px;}
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Kontainer Kartu */
+        .data-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Gaya Kartu */
+        .data-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            opacity: 0; /* Mulai dari transparan untuk animasi */
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-color);
+        }
+        
+        /* Animasi keluar */
+        .data-card.exiting {
+            animation: fadeOutDown 0.4s ease-in forwards;
+        }
+
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        .card-header .name { font-size: 1.25rem; font-weight: 600; }
+        .card-header .whatsapp { font-size: 0.9rem; color: var(--text-secondary); }
+
+        .card-body .message {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+
+        .card-actions {
+            margin-top: auto; /* Mendorong tombol ke bawah kartu */
+            padding-top: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .action-btn:hover { transform: scale(1.05); }
+
+        .whatsapp-btn { background-color: var(--success-color); }
+        .whatsapp-btn:hover { background-color: var(--success-hover); }
+        .delete-btn { background-color: var(--danger-color); }
+        .delete-btn:hover { background-color: var(--danger-hover); }
+        
+        .no-data {
+            grid-column: 1 / -1; /* Mengambil seluruh lebar grid */
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 3rem;
+            font-size: 1.2rem;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Dashboard Cek Barang</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Nomor WhatsApp</th>
-                <th>Template Kalimat</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="data-table-body">
-            </tbody>
-    </table>
+    <header class="dashboard-header">
+        <h1>Dashboard Notifikasi</h1>
+        <div class="controls">
+            <button class="clear-all-btn" onclick="clearAllData()">Hapus Semua</button>
+            <div class="theme-switch-wrapper">
+                <span>☀️</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span>🌙</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="data-container" class="data-container"></main>
 </div>
 
 <script>
     const DB_KEY = 'dashboardData';
+    const dataContainer = document.getElementById('data-container');
+    const themeToggle = document.getElementById('theme-toggle');
 
-    // Fungsi untuk merender data dari localStorage ke dalam tabel
-    function renderTable() {
-        console.log("2. Merender tabel...");
-        const tableBody = document.getElementById('data-table-body');
+    // === FUNGSI UTAMA ===
+
+    function renderCards() {
+        dataContainer.innerHTML = '';
         const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        
-        console.log("   - Data yang akan ditampilkan:", data); // LOG PENTING
-        
-        tableBody.innerHTML = ''; 
 
         if (data.length === 0) {
-            console.log("   - Tidak ada data, menampilkan pesan kosong.");
-            tableBody.innerHTML = '<tr><td colspan="4" class="no-data">Belum ada data yang dikirim ke dashboard.</td></tr>';
+            dataContainer.innerHTML = '<div class="no-data">Belum ada data yang dikirim ke dashboard.</div>';
             return;
         }
 
@@ -66,63 +240,102 @@
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
             
-            const row = `
-                <tr>
-                    <td>${item.nama}</td>
-                    <td>${item.wa}</td>
-                    <td>${item.msg}</td>
-                    <td>
-                        <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
-                        <button class="action-btn delete-btn" onclick="deleteEntry(${index})">Hapus</button>
-                    </td>
-                </tr>
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            card.id = `card-${index}`;
+            card.style.animationDelay = `${index * 100}ms`; // Efek animasi berjenjang
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="name">${item.nama}</span>
+                    <span class="whatsapp">${item.wa}</span>
+                </div>
+                <div class="card-body">
+                    <p class="message">${item.msg}</p>
+                </div>
+                <div class="card-actions">
+                    <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
+                    <button class="action-btn delete-btn" onclick="deleteEntry(${index})">Hapus</button>
+                </div>
             `;
-            tableBody.innerHTML += row;
+            dataContainer.appendChild(card);
         });
-        console.log("3. Tabel selesai dirender.");
     }
 
-    // Fungsi untuk menghapus entri dari localStorage
     function deleteEntry(index) {
-        if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        const cardToDelete = document.getElementById(`card-${index}`);
+        if (!cardToDelete || !confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+            return;
+        }
+        
+        // 1. Tambahkan class animasi keluar
+        cardToDelete.classList.add('exiting');
+        
+        // 2. Tunggu animasi selesai, baru hapus data & render ulang
+        setTimeout(() => {
             const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            data.splice(index, 1); 
+            data.splice(index, 1);
             localStorage.setItem(DB_KEY, JSON.stringify(data));
-            renderTable(); 
+            renderCards();
+        }, 400); // Durasi harus cocok dengan animasi CSS (0.4s)
+    }
+
+    function clearAllData() {
+        if (confirm('PERINGATAN: Semua data di dashboard akan dihapus permanen. Lanjutkan?')) {
+            localStorage.removeItem(DB_KEY);
+            renderCards();
         }
     }
 
-    // Fungsi untuk memproses parameter dari URL
     function processUrlParams() {
-        console.log("1. Memproses parameter dari URL...");
         const params = new URLSearchParams(window.location.search);
         const nama = params.get('nama');
         const wa = params.get('wa');
         const msg = params.get('msg');
-        
-        console.log("   - Nama dari URL:", nama);    // LOG PENTING
-        console.log("   - WA dari URL:", wa);        // LOG PENTING
 
         if (nama && wa && msg) {
-            console.log("   - Data baru DITEMUKAN di URL. Menyimpan ke localStorage...");
             const newData = { nama, wa, msg };
-            const oldData = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            oldData.unshift(newData);
-            localStorage.setItem(DB_KEY, JSON.stringify(oldData));
-            console.log("   - Data berhasil disimpan.");
-            
+            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            data.unshift(newData);
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
             window.history.replaceState({}, document.title, window.location.pathname);
-            console.log("   - URL telah dibersihkan.");
-        } else {
-            console.log("   - Tidak ada data baru di URL.");
         }
     }
 
-    // Jalankan fungsi saat halaman dimuat
+    // === FUNGSI TEMA (DARK MODE) ===
+    
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.checked = true;
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeToggle.checked = false;
+        }
+    }
+
+    function toggleTheme() {
+        const currentTheme = localStorage.getItem('theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
+
+    // === INISIALISASI HALAMAN ===
+
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("Halaman Dashboard selesai dimuat. Memulai skrip...");
+        // Proses data dari URL jika ada
         processUrlParams();
-        renderTable();
+        
+        // Terapkan tema yang tersimpan
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        
+        // Render semua kartu
+        renderCards();
+
+        // Tambahkan event listener untuk tombol tema
+        themeToggle.addEventListener('change', toggleTheme);
     });
 </script>
 
