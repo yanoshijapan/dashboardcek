@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Cek Barang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { font-family: 'Poppins', sans-serif; text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
+        th { background-color: #f8f8f8; font-weight: 500; }
+        td:nth-child(3) { word-break: break-word; min-width: 300px; }
+        .action-btn {
+            display: inline-block; padding: 8px 12px; margin: 2px;
+            border: none; border-radius: 5px; color: white;
+            text-decoration: none; font-size: 14px; cursor: pointer; text-align: center;
+        }
+        .whatsapp-btn { background-color: #25D366; }
+        .delete-btn { background-color: #e74c3c; }
+        .no-data { text-align: center; color: #888; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dashboard Cek Barang</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Nomor WhatsApp</th>
+                <th>Template Kalimat</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="data-table-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const DB_KEY = 'dashboardData';
+
+    // Fungsi untuk merender data dari localStorage ke dalam tabel
+    function renderTable() {
+        const tableBody = document.getElementById('data-table-body');
+        const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        tableBody.innerHTML = ''; // Kosongkan tabel sebelum mengisi
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="no-data">Belum ada data yang dikirim ke dashboard.</td></tr>';
+            return;
+        }
+
+        data.forEach((item, index) => {
+            const encodedMessage = encodeURIComponent(item.msg);
+            const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
+            
+            const row = `
+                <tr>
+                    <td>${item.nama}</td>
+                    <td>${item.wa}</td>
+                    <td>${item.msg}</td>
+                    <td>
+                        <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
+                        <button class="action-btn delete-btn" onclick="deleteEntry(${index})">Hapus</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    // Fungsi untuk menghapus entri dari localStorage
+    function deleteEntry(index) {
+        if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            data.splice(index, 1); // Hapus item pada indeks yang dipilih
+            localStorage.setItem(DB_KEY, JSON.stringify(data)); // Simpan kembali array yang sudah diubah
+            renderTable(); // Render ulang tabel
+        }
+    }
+
+    // Fungsi untuk memproses parameter dari URL
+    function processUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const nama = params.get('nama');
+        const wa = params.get('wa');
+        const msg = params.get('msg');
+
+        if (nama && wa && msg) {
+            const newData = { nama, wa, msg };
+            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            data.unshift(newData); // Tambahkan data baru ke awal array
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
+
+            // Hapus parameter dari URL agar tidak ditambahkan lagi saat refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    // Jalankan fungsi saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+        processUrlParams();
+        renderTable();
+    });
+</script>
+
+</body>
+</html>
