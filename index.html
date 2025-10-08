@@ -7,8 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
-        /* CSS tidak berubah, tetap sama seperti sebelumnya */
         :root {
             --bg-color: #f4f7f9;
             --card-bg-color: #ffffff;
@@ -69,7 +72,7 @@
 
 <div class="container">
     <header class="dashboard-header">
-        <h1>Dashboard Notifikasi</h1>
+        <h1>Dashboard Cek Barang</h1>
         <div class="controls">
             <button class="clear-all-btn" onclick="clearAllData()">Hapus Semua</button>
             <div class="theme-switch-wrapper">
@@ -86,32 +89,42 @@
 </div>
 
 <script>
-    const DB_KEY = 'dashboardData';
+    // ⬇️⬇️ PASTE KUNCI KONFIGURASI FIREBASE YANG SAMA DENGAN DI FORM ⬇️⬇️
+    const firebaseConfig = {
+      apiKey: "AIzaSyDqLE8jpK9zR8cYU4uox-ZRfGRkURsWPjQ",
+      authDomain: "dashboard-cek-barang.firebaseapp.com",
+      databaseURL: "https://dashboard-cek-barang-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "dashboard-cek-barang",
+      storageBucket: "dashboard-cek-barang.firebasestorage.app",
+      messagingSenderId: "808568440133",
+      appId: "1:808568440133:web:3cc38a5d3c443b985baa2c",
+      measurementId: "G-6GFVZX74GT"
+    };
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     const dataContainer = document.getElementById('data-container');
     const themeToggle = document.getElementById('theme-toggle');
 
-    // === FUNGSI UTAMA (DENGAN PERBAIKAN CSP) ===
-
-    function renderCards() {
+    function renderCards(dataArray) {
         dataContainer.innerHTML = '';
-        const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-
-        if (data.length === 0) {
-            dataContainer.innerHTML = '<div class="no-data">Belum ada data yang dikirim ke dashboard.</div>';
+        if (!dataArray || dataArray.length === 0) {
+            dataContainer.innerHTML = '<div class="no-data">Belum ada data.</div>';
             return;
         }
+        
+        dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        data.forEach((item, index) => {
+        dataArray.forEach((item, index) => {
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
             
-            // 1. Buat elemen kartu utama
             const card = document.createElement('div');
             card.className = 'data-card';
-            card.id = `card-${index}`;
+            card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 100}ms`;
 
-            // 2. Isi konten kartu menggunakan innerHTML (ini aman)
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
@@ -125,47 +138,29 @@
                 </div>
             `;
             
-            // 3. Buat tombol Hapus secara terpisah (CARA AMAN)
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
-            
-            // 4. Tambahkan event listener secara aman
-            deleteBtn.addEventListener('click', () => deleteEntry(index));
-
-            // 5. Masukkan tombol Hapus ke dalam div actions di dalam kartu
+            deleteBtn.addEventListener('click', () => deleteEntry(item.id));
             card.querySelector('.card-actions').appendChild(deleteBtn);
-
-            // 6. Masukkan kartu yang sudah jadi ke dalam kontainer utama
             dataContainer.appendChild(card);
         });
     }
 
-    function deleteEntry(index) {
-        const cardToDelete = document.getElementById(`card-${index}`);
+    function deleteEntry(entryId) {
+        const cardToDelete = document.getElementById(`card-${entryId}`);
         if (!cardToDelete || !confirm('Apakah Anda yakin ingin menghapus data ini?')) {
             return;
         }
-        
-        cardToDelete.classList.add('exiting');
-        
-        setTimeout(() => {
-            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            data.splice(index, 1);
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-            renderCards();
-        }, 400);
+        database.ref('notifications/' + entryId).remove();
     }
 
     function clearAllData() {
         if (confirm('PERINGATAN: Semua data di dashboard akan dihapus permanen. Lanjutkan?')) {
-            localStorage.removeItem(DB_KEY);
-            renderCards();
+            database.ref('notifications').remove();
         }
     }
 
-    // === FUNGSI TEMA (DARK MODE) ===
-    
     function applyTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark-mode');
@@ -182,27 +177,17 @@
         applyTheme(newTheme);
     }
 
-    // === INISIALISASI HALAMAN & REAL-TIME LISTENER ===
+    const notificationsRef = database.ref('notifications');
+    notificationsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        const dataArray = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
+        renderCards(dataArray);
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
-        renderCards();
         themeToggle.addEventListener('change', toggleTheme);
-    });
-
-    window.addEventListener('storage', (event) => {
-        if (event.key === DB_KEY) {
-            renderCards();
-        }
-    });
-    document.addEventListener('visibilitychange', () => {
-        // Periksa apakah tab ini sekarang terlihat/aktif
-        if (document.visibilityState === 'visible') {
-            console.log("Tab kembali aktif, memeriksa pembaruan data...");
-            // Jika ya, panggil ulang fungsi renderCards untuk memuat data terbaru
-            renderCards();
-        }
     });
 </script>
 
