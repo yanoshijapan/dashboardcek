@@ -48,11 +48,16 @@
 
     // Fungsi untuk merender data dari localStorage ke dalam tabel
     function renderTable() {
+        console.log("2. Merender tabel...");
         const tableBody = document.getElementById('data-table-body');
         const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        tableBody.innerHTML = ''; // Kosongkan tabel sebelum mengisi
+        
+        console.log("   - Data yang akan ditampilkan:", data); // LOG PENTING
+        
+        tableBody.innerHTML = ''; 
 
         if (data.length === 0) {
+            console.log("   - Tidak ada data, menampilkan pesan kosong.");
             tableBody.innerHTML = '<tr><td colspan="4" class="no-data">Belum ada data yang dikirim ke dashboard.</td></tr>';
             return;
         }
@@ -74,38 +79,48 @@
             `;
             tableBody.innerHTML += row;
         });
+        console.log("3. Tabel selesai dirender.");
     }
 
     // Fungsi untuk menghapus entri dari localStorage
     function deleteEntry(index) {
         if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
             const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            data.splice(index, 1); // Hapus item pada indeks yang dipilih
-            localStorage.setItem(DB_KEY, JSON.stringify(data)); // Simpan kembali array yang sudah diubah
-            renderTable(); // Render ulang tabel
+            data.splice(index, 1); 
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
+            renderTable(); 
         }
     }
 
     // Fungsi untuk memproses parameter dari URL
     function processUrlParams() {
+        console.log("1. Memproses parameter dari URL...");
         const params = new URLSearchParams(window.location.search);
         const nama = params.get('nama');
         const wa = params.get('wa');
         const msg = params.get('msg');
+        
+        console.log("   - Nama dari URL:", nama);    // LOG PENTING
+        console.log("   - WA dari URL:", wa);        // LOG PENTING
 
         if (nama && wa && msg) {
+            console.log("   - Data baru DITEMUKAN di URL. Menyimpan ke localStorage...");
             const newData = { nama, wa, msg };
-            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            data.unshift(newData); // Tambahkan data baru ke awal array
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-
-            // Hapus parameter dari URL agar tidak ditambahkan lagi saat refresh
+            const oldData = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            oldData.unshift(newData);
+            localStorage.setItem(DB_KEY, JSON.stringify(oldData));
+            console.log("   - Data berhasil disimpan.");
+            
             window.history.replaceState({}, document.title, window.location.pathname);
+            console.log("   - URL telah dibersihkan.");
+        } else {
+            console.log("   - Tidak ada data baru di URL.");
         }
     }
 
     // Jalankan fungsi saat halaman dimuat
     document.addEventListener('DOMContentLoaded', () => {
+        console.log("Halaman Dashboard selesai dimuat. Memulai skrip...");
         processUrlParams();
         renderTable();
     });
