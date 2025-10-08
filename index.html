@@ -287,21 +287,6 @@
         }
     }
 
-    function processUrlParams() {
-        const params = new URLSearchParams(window.location.search);
-        const nama = params.get('nama');
-        const wa = params.get('wa');
-        const msg = params.get('msg');
-
-        if (nama && wa && msg) {
-            const newData = { nama, wa, msg };
-            const data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-            data.unshift(newData);
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    }
-
     // === FUNGSI TEMA (DARK MODE) ===
     
     function applyTheme(theme) {
@@ -321,21 +306,28 @@
         applyTheme(newTheme);
     }
 
-    // === INISIALISASI HALAMAN ===
+    // === INISIALISASI HALAMAN & REAL-TIME LISTENER ===
 
+    // Jalankan saat halaman pertama kali dimuat
     document.addEventListener('DOMContentLoaded', () => {
-        // Proses data dari URL jika ada
-        processUrlParams();
-        
         // Terapkan tema yang tersimpan
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
         
-        // Render semua kartu
+        // Render semua kartu saat pertama kali dibuka
         renderCards();
 
         // Tambahkan event listener untuk tombol tema
         themeToggle.addEventListener('change', toggleTheme);
+    });
+
+    // "Pendengar" untuk perubahan di localStorage dari tab lain
+    window.addEventListener('storage', (event) => {
+        // Pastikan perubahan terjadi pada data dashboard kita
+        if (event.key === DB_KEY) {
+            // Jika ada perubahan, panggil ulang fungsi renderCards
+            renderCards();
+        }
     });
 </script>
 
