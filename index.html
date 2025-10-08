@@ -196,6 +196,14 @@
             renderCards();
         }
     });
+    document.addEventListener('visibilitychange', () => {
+        // Periksa apakah tab ini sekarang terlihat/aktif
+        if (document.visibilityState === 'visible') {
+            console.log("Tab kembali aktif, memeriksa pembaruan data...");
+            // Jika ya, panggil ulang fungsi renderCards untuk memuat data terbaru
+            renderCards();
+        }
+    });
 </script>
 
 </body>
