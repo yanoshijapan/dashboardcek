@@ -107,6 +107,65 @@
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
+        @media (max-width: 768px) {
+    /* 1. Mengatur ulang tata letak utama */
+            body {
+                padding: 0.75rem; /* Perkecil padding di sekeliling halaman */
+            }
+            h1 {
+                font-size: 1.5rem; /* Perkecil judul utama */
+            }
+            .dashboard-header {
+                flex-direction: column; /* Buat header menjadi vertikal */
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            #search-input {
+                width: 100%; /* Buat input pencarian memenuhi lebar */
+            }
+        
+            /* 2. Mengubah kontainer data menjadi 3 kolom */
+            .data-container {
+                /* Sesuai permintaan: menjadi 3 kolom di layar kecil */
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem; /* Perkecil jarak antar kartu */
+            }
+        
+            /* 3. Menyesuaikan ukuran konten di dalam kartu */
+            .data-card {
+                padding: 0.75rem; /* Perkecil padding di dalam kartu */
+                gap: 0.5rem;
+                border-radius: 8px;
+            }
+            .card-header {
+                padding-bottom: 0.5rem;
+            }
+            .card-header .name {
+                font-size: 0.8rem; /* Perkecil font nama */
+            }
+            .card-header .whatsapp,
+            .card-header .timestamp {
+                font-size: 0.65rem; /* Perkecil font nomor & tanggal */
+            }
+            .card-body .message {
+                font-size: 0.75rem; /* Perkecil font pesan */
+                line-height: 1.4;
+            }
+            .data-card.completed::after {
+                font-size: 2.5rem; /* Perkecil ikon centang */
+            }
+        
+            /* 4. Mengatur ulang tombol agar lebih rapi */
+            .card-actions {
+                flex-direction: column; /* Susun tombol dari atas ke bawah */
+                gap: 0.5rem;
+                padding-top: 0.5rem;
+            }
+            .action-btn {
+                padding: 8px;
+                font-size: 0.75rem; /* Perkecil font tombol */
+            }
+        }
     </style>
 </head>
 <body>
