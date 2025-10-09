@@ -107,87 +107,73 @@
         .whatsapp-btn { background-color: var(--success-color); }
         .whatsapp-btn:hover { background-color: var(--success-hover); }
         .complete-btn, .mark-btn {
-            background-color: var(--card-bg-color); /* Latar tetap mengikuti tema */
-            color: #000000; /* Warna font diatur permanen menjadi hitam */
-            border: 1px solid #dddddd; /* Border abu-abu muda agar tidak terlalu kontras */
+            background-color: var(--card-bg-color);
+            color: #000000;
+            border: 1px solid #dddddd;
         }
         body.dark-mode .complete-btn,
         body.dark-mode .mark-btn {
-            color: #ffffff; /* Ubah warna font menjadi putih */
-            border-color: #555555; /* (Opsional) Gelapkan border agar lebih serasi */
+            color: #ffffff;
+            border-color: #555555;
         }
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
+        
+        /* === [BARU] CSS UNTUK NOTIFIKASI UNDO === */
+        .undo-container {
+            position: fixed;
+            bottom: -100px; /* Mulai dari luar layar */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-primary);
+            color: var(--bg-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 1001;
+            transition: bottom 0.5s ease-in-out;
+        }
+        .undo-container.show {
+            bottom: 20px; /* Muncul ke dalam layar */
+        }
+        #undo-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #undo-btn:hover {
+            background: var(--accent-hover);
+        }
+        
         @media (max-width: 768px) {
-            body {
-                padding: 0.75rem;
-            }
-            h1 {
-                font-size: 1.6rem;
-            }
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.75rem;
-            }
-            #search-input {
-                width: 100%;
-            }
-            .data-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.5rem;
-            }
-            .data-card {
-                padding: 0.75rem;
-                gap: 0.5rem;
-                border-radius: 8px;
-            }
-            .card-header {
-                padding-bottom: 0.5rem;
-            }
-            .card-header .name {
-                font-size: 0.8rem;
-            }
-            .card-header .whatsapp,
-            .card-header .timestamp {
-                font-size: 0.65rem;
-            }
-            .card-body {
-                max-height: 120px;
-                overflow-y: auto;
-                padding-right: 5px;
-            }
-            .card-body::-webkit-scrollbar {
-                width: 5px;
-            }
-            .card-body::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            .card-body::-webkit-scrollbar-thumb {
-                background-color: var(--border-color);
-                border-radius: 20px;
-            }
-            .card-body .message {
-                font-size: 0.75rem;
-                line-height: 1.4;
-            }
-            .data-card.completed::after {
-                font-size: 2.5rem;
-            }
-            .card-actions {
-                flex-direction: column;
-                gap: 0.5rem;
-                padding-top: 0.5rem;
-            }
-            .action-btn {
-                padding: 8px;
-                font-size: 0.75rem;
-            }
+            body { padding: 0.75rem; }
+            h1 { font-size: 1.6rem; }
+            .dashboard-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            #search-input { width: 100%; }
+            .data-container { grid-template-columns: 1fr; gap: 0.75rem; } /* Ubah ke 1 kolom di mobile */
+            .data-card { padding: 1rem; gap: 0.75rem; }
+            .card-header .name { font-size: 1.1rem; }
+            .card-header .whatsapp, .card-header .timestamp { font-size: 0.8rem; }
+            .card-body .message { font-size: 0.9rem; }
+            .card-actions { flex-direction: row; flex-wrap: wrap; }
+            .action-btn { flex-basis: 48%; }
         }
     </style>
 </head>
 <body>
+
+<div id="undo-container" class="undo-container">
+    <span id="undo-message"></span>
+    <button id="undo-btn">Undo</button>
+</div>
 
 <div class="container">
     <header class="dashboard-header">
@@ -215,7 +201,7 @@
       authDomain: "dashboard-cek-barang.firebaseapp.com",
       databaseURL: "https://dashboard-cek-barang-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "dashboard-cek-barang",
-      storageBucket: "dashboard-cek-barang.firebasestorage.app",
+      storageBucket: "dashboard-cek-barang.appspot.com",
       messagingSenderId: "808568440133",
       appId: "1:808568440133:web:3cc38a5d3c443b985baa2c",
       measurementId: "G-6GFVZX74GT"
@@ -228,23 +214,27 @@
     const themeToggle = document.getElementById('theme-toggle');
     const searchInput = document.getElementById('search-input');
 
-    let allData = []; // Variabel untuk menyimpan semua data asli dari Firebase
+    let allData = [];
+
+    // === [BARU] VARIABEL UNTUK FITUR UNDO ===
+    let lastDeletedItem = null;
+    let undoTimeout = null;
+    const undoContainer = document.getElementById('undo-container');
+    const undoBtn = document.getElementById('undo-btn');
+
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
-    
-        // --- LANGKAH 1: BACA STATUS TERSIMPAN DARI LOCALSTORAGE ---
-        // Ambil data ID yang tersimpan, atau buat array kosong jika tidak ada.
         const completedItems = JSON.parse(localStorage.getItem('completedItems')) || [];
         const markedItems = JSON.parse(localStorage.getItem('markedItems')) || [];
-    
+        
         if (!dataArray || dataArray.length === 0) {
             dataContainer.innerHTML = '<div class="no-data">Belum ada data atau tidak ada hasil pencarian.</div>';
             return;
         }
         
         dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+        
         dataArray.forEach((item, index) => {
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
@@ -252,21 +242,18 @@
                 day: '2-digit', month: 'short', year: 'numeric', 
                 hour: '2-digit', minute: '2-digit', hour12: false
             });
-    
             const card = document.createElement('div');
             card.className = 'data-card';
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
-    
-            // --- LANGKAH 2: TERAPKAN STATUS SAAT KARTU DIBUAT ---
-            // Periksa apakah ID kartu ini ada di dalam array yang sudah kita baca.
+            
             if (completedItems.includes(item.id)) {
                 card.classList.add('completed');
             }
             if (markedItems.includes(item.id)) {
                 card.classList.add('marked');
             }
-    
+            
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
@@ -290,31 +277,23 @@
             const markBtn = document.createElement('button');
             markBtn.className = 'action-btn mark-btn';
             markBtn.textContent = 'Tandai';
-    
-            // --- LANGKAH 3: SIMPAN STATUS SAAT TOMBOL DIKLIK ---
+            
             completeBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 card.classList.toggle('completed');
-    
-                // Ambil daftar item 'completed' terbaru dari localStorage
                 let currentCompleted = JSON.parse(localStorage.getItem('completedItems')) || [];
                 if (card.classList.contains('completed')) {
-                    // Jika kartu sekarang completed, tambahkan ID-nya jika belum ada
                     if (!currentCompleted.includes(item.id)) {
                         currentCompleted.push(item.id);
                     }
                 } else {
-                    // Jika tidak completed, hapus ID-nya dari daftar
                     currentCompleted = currentCompleted.filter(id => id !== item.id);
                 }
-                // Simpan kembali daftar yang sudah diperbarui ke localStorage
                 localStorage.setItem('completedItems', JSON.stringify(currentCompleted));
             });
             
             markBtn.addEventListener('click', () => {
                 card.classList.toggle('marked');
-                
-                // Logika yang sama untuk tombol 'Tandai'
                 let currentMarked = JSON.parse(localStorage.getItem('markedItems')) || [];
                 if (card.classList.contains('marked')) {
                     if (!currentMarked.includes(item.id)) {
@@ -325,7 +304,7 @@
                 }
                 localStorage.setItem('markedItems', JSON.stringify(currentMarked));
             });
-    
+            
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
@@ -362,17 +341,66 @@
         renderCards(filteredData);
     }
 
+    // === [DIUBAH] FUNGSI DELETE DENGAN LOGIKA UNDO ===
     function deleteEntry(entryId) {
-        const cardToDelete = document.getElementById(`card-${entryId}`);
-        if (!cardToDelete || !confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
             return;
         }
-        database.ref('notifications/' + entryId).remove();
+        
+        const entryRef = database.ref('notifications/' + entryId);
+        
+        // 1. Baca data yang akan dihapus
+        entryRef.once('value', (snapshot) => {
+            const dataToDelete = snapshot.val();
+            
+            if (dataToDelete) {
+                // 2. Simpan data dan ID-nya untuk kemungkinan undo
+                lastDeletedItem = {
+                    id: entryId,
+                    data: dataToDelete
+                };
+
+                // 3. Hapus data dari Firebase
+                entryRef.remove().then(() => {
+                    // 4. Tampilkan notifikasi undo
+                    showUndoNotification();
+                });
+            }
+        });
     }
 
+    // === [DIUBAH] FUNGSI CLEARALL DENGAN KONFIRMASI LEBIH AMAN ===
     function clearAllData() {
-        if (confirm('PERINGATAN: Semua data di dashboard akan dihapus permanen. Lanjutkan?')) {
+        const confirmationText = 'HAPUS SEMUA';
+        const userInput = prompt(`PERINGATAN: Ini akan menghapus SEMUA data di dashboard secara permanen dan tidak dapat dibatalkan.\n\nUntuk melanjutkan, ketik "${confirmationText}" di bawah ini:`);
+
+        if (userInput === confirmationText) {
+            alert('Semua data sedang dihapus...');
             database.ref('notifications').remove();
+        } else {
+            alert('Penghapusan dibatalkan.');
+        }
+    }
+
+    // === [BARU] FUNGSI UNTUK MENAMPILKAN NOTIFIKASI UNDO ===
+    function showUndoNotification() {
+        clearTimeout(undoTimeout);
+        undoContainer.classList.add('show');
+        document.getElementById('undo-message').textContent = `Item "${lastDeletedItem.data.nama}" telah dihapus.`;
+
+        undoTimeout = setTimeout(() => {
+            undoContainer.classList.remove('show');
+            lastDeletedItem = null; 
+        }, 7000); 
+    }
+
+    // === [BARU] FUNGSI UNTUK MENGEMBALIKAN DATA YANG DIHAPUS ===
+    function undoDelete() {
+        if (lastDeletedItem) {
+            database.ref('notifications/' + lastDeletedItem.id).set(lastDeletedItem.data);
+            lastDeletedItem = null;
+            clearTimeout(undoTimeout);
+            undoContainer.classList.remove('show');
         }
     }
 
@@ -404,6 +432,9 @@
         applyTheme(savedTheme);
         themeToggle.addEventListener('change', toggleTheme);
         searchInput.addEventListener('input', filterAndRender);
+        
+        // === [BARU] EVENT LISTENER UNTUK TOMBOL UNDO ===
+        undoBtn.addEventListener('click', undoDelete); 
     });
 </script>
 
