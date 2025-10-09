@@ -25,8 +25,8 @@
             --danger-hover: #c0392b;
             --success-hover: #229954;
             --accent-hover: #2980b9;
-            --completed-bg-light: #e9ecef;
-            --completed-bg-dark: #343a40;
+            --completed-bg-light: #333333;
+            --completed-bg-dark: #333333;
             --marked-bg-light: #fffbe6;
             --marked-bg-dark: #594c19;
         }
@@ -111,7 +111,11 @@
             color: #000000; /* Warna font diatur permanen menjadi hitam */
             border: 1px solid #dddddd; /* Border abu-abu muda agar tidak terlalu kontras */
         }
-
+        body.dark-mode .complete-btn,
+        body.dark-mode .mark-btn {
+            color: #ffffff; /* Ubah warna font menjadi putih */
+            border-color: #555555; /* (Opsional) Gelapkan border agar lebih serasi */
+        }
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
