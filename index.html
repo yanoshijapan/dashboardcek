@@ -42,7 +42,24 @@
         .container { max-width: 1200px; margin: auto; }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
         h1 { font-size: 2.5rem; margin: 0; font-weight: 700; }
-        .controls { display: flex; align-items: center; gap: 1rem; }
+        
+        #search-input {
+            padding: 10px 15px;
+            font-family: 'Poppins', sans-serif;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg-color);
+            color: var(--text-primary);
+            width: 250px;
+            transition: all 0.3s;
+        }
+        #search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
         .clear-all-btn { background: var(--danger-color); color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; transition: background-color 0.2s; }
         .clear-all-btn:hover { background: var(--danger-hover); }
         .theme-switch-wrapper { display: flex; align-items: center; gap: 10px; }
@@ -53,32 +70,40 @@
         input:checked + .slider { background-color: var(--accent-color); }
         input:checked + .slider:before { transform: translateX(24px); }
         .data-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .data-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
+        .data-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); display: flex; flex-direction: column; gap: 1rem; transition: all 0.3s; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; position: relative; overflow: hidden; }
         .data-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px var(--shadow-color); }
         .data-card.exiting { animation: fadeOutDown 0.4s ease-in forwards; }
-
-        /* GAYA BARU UNTUK KARTU YANG DITANDAI */
+        
         .data-card.marked { background-color: var(--marked-bg-light); border-color: var(--accent-color); }
         body.dark-mode .data-card.marked { background-color: var(--marked-bg-dark); }
+        
+        .data-card.completed::after {
+            content: '✔';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 3rem;
+            color: var(--success-color);
+            opacity: 0.2;
+            transform: rotate(15deg);
+        }
 
         .card-header { display: flex; flex-direction: column; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
         .card-header .name { font-size: 1.25rem; font-weight: 600; }
         .card-header .whatsapp { font-size: 0.9rem; color: var(--text-secondary); }
-        
-        /* GAYA BARU UNTUK TIMESTAMP */
         .card-header .timestamp { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
-        
         .card-body .message { font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); word-break: break-word; }
-        .card-actions { margin-top: auto; padding-top: 1rem; display: flex; gap: 10px; }
+        .card-actions { margin-top: auto; padding-top: 1rem; display: flex; gap: 10px; z-index: 1; }
         .action-btn { flex-grow: 1; padding: 10px; border: none; border-radius: 8px; color: white; text-decoration: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: center; transition: background-color 0.2s, transform 0.2s; }
         .action-btn:hover { transform: scale(1.05); }
         .whatsapp-btn { background-color: var(--success-color); }
         .whatsapp-btn:hover { background-color: var(--success-hover); }
-        
-        /* GAYA BARU UNTUK TOMBOL TANDAI */
         .mark-btn { background-color: var(--accent-color); }
         .mark-btn:hover { background-color: var(--accent-hover); }
-        
+
+        .complete-btn { background-color: var(--success-color); opacity: 0.9; }
+        .complete-btn:hover { background-color: var(--success-hover); opacity: 1;}
+
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
@@ -88,8 +113,9 @@
 
 <div class="container">
     <header class="dashboard-header">
-        <h1>Dashboard Cek Barang</h1>
+        <h1>Dashboard</h1>
         <div class="controls">
+            <input type="search" id="search-input" placeholder="Cari nama, no. WA, tanggal...">
             <button class="clear-all-btn" onclick="clearAllData()">Hapus Semua</button>
             <div class="theme-switch-wrapper">
                 <span>☀️</span>
@@ -107,14 +133,13 @@
 <script>
     // ⬇️⬇️ PASTE KUNCI KONFIGURASI FIREBASE YANG SAMA DENGAN DI FORM ⬇️⬇️
     const firebaseConfig = {
-      apiKey: "AIzaSyDqLE8jpK9zR8cYU4uox-ZRfGRkURsWPjQ",
-      authDomain: "dashboard-cek-barang.firebaseapp.com",
-      databaseURL: "https://dashboard-cek-barang-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "dashboard-cek-barang",
-      storageBucket: "dashboard-cek-barang.firebasestorage.app",
-      messagingSenderId: "808568440133",
-      appId: "1:808568440133:web:3cc38a5d3c443b985baa2c",
-      measurementId: "G-6GFVZX74GT"
+      apiKey: "AIzaSyCuOri9kZfOCrYQmuSs0AeG4rgNSx-pyt0",
+      authDomain: "yanoshi-team.firebaseapp.com",
+      projectId: "yanoshi-team",
+      storageBucket: "yanoshi-team.firebasestorage.app",
+      messagingSenderId: "789314538139",
+      appId: "1:789314538139:web:4911234c07b0d06eb3943e",
+      measurementId: "G-7JX915SWVQ"
     };
     // Inisialisasi Firebase
     firebase.initializeApp(firebaseConfig);
@@ -122,11 +147,14 @@
 
     const dataContainer = document.getElementById('data-container');
     const themeToggle = document.getElementById('theme-toggle');
+    const searchInput = document.getElementById('search-input');
+
+    let allData = []; // Variabel untuk menyimpan semua data asli dari Firebase
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
         if (!dataArray || dataArray.length === 0) {
-            dataContainer.innerHTML = '<div class="no-data">Belum ada data.</div>';
+            dataContainer.innerHTML = '<div class="no-data">Belum ada data atau tidak ada hasil pencarian.</div>';
             return;
         }
         
@@ -135,8 +163,6 @@
         dataArray.forEach((item, index) => {
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
-            
-            // --- PERUBAHAN 1: FORMAT TANGGAL ---
             const formattedDate = new Date(item.timestamp).toLocaleString('id-ID', {
                 day: '2-digit', month: 'short', year: 'numeric', 
                 hour: '2-digit', minute: '2-digit', hour12: false
@@ -145,9 +171,8 @@
             const card = document.createElement('div');
             card.className = 'data-card';
             card.id = `card-${item.id}`;
-            card.style.animationDelay = `${index * 100}ms`;
+            card.style.animationDelay = `${index * 50}ms`;
 
-            // --- PERUBAHAN 2: TAMBAHKAN TANGGAL KE HTML ---
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
@@ -162,29 +187,55 @@
                 </div>
             `;
             
-            // --- PERUBAHAN 3: BUAT DAN TAMBAHKAN TOMBOL TANDAI & HAPUS ---
             const cardActions = card.querySelector('.card-actions');
-
-            // Buat Tombol Tandai
+            
+            const completeBtn = document.createElement('button');
+            completeBtn.className = 'action-btn complete-btn';
+            completeBtn.textContent = 'Lengkap';
+            completeBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                card.classList.toggle('completed');
+            });
+            
             const markBtn = document.createElement('button');
             markBtn.className = 'action-btn mark-btn';
             markBtn.textContent = 'Tandai';
-            markBtn.addEventListener('click', () => {
-                card.classList.toggle('marked'); // Menambah/menghapus class 'marked'
-            });
+            markBtn.addEventListener('click', () => card.classList.toggle('marked'));
 
-            // Buat Tombol Hapus
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
             
-            // Tambahkan tombol ke dalam container actions
+            cardActions.appendChild(completeBtn);
             cardActions.appendChild(markBtn);
             cardActions.appendChild(deleteBtn);
             
             dataContainer.appendChild(card);
         });
+    }
+    
+    function filterAndRender() {
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        if (!searchTerm) {
+            renderCards(allData);
+            return;
+        }
+
+        const filteredData = allData.filter(item => {
+            const formattedDate = new Date(item.timestamp).toLocaleString('id-ID', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            }).toLowerCase();
+
+            return (
+                item.nama.toLowerCase().includes(searchTerm) ||
+                item.wa.toLowerCase().includes(searchTerm) ||
+                formattedDate.includes(searchTerm)
+            );
+        });
+        
+        renderCards(filteredData);
     }
 
     function deleteEntry(entryId) {
@@ -220,14 +271,15 @@
     const notificationsRef = database.ref('notifications');
     notificationsRef.on('value', (snapshot) => {
         const data = snapshot.val();
-        const dataArray = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
-        renderCards(dataArray);
+        allData = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
+        filterAndRender(); 
     });
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
         themeToggle.addEventListener('change', toggleTheme);
+        searchInput.addEventListener('input', filterAndRender);
     });
 </script>
 
