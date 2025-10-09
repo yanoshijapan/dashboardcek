@@ -127,7 +127,7 @@
             /* 2. Mengubah kontainer data menjadi 3 kolom */
             .data-container {
                 /* Sesuai permintaan: menjadi 3 kolom di layar kecil */
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
                 gap: 0.5rem; /* Perkecil jarak antar kartu */
             }
         
@@ -164,6 +164,23 @@
             .action-btn {
                 padding: 8px;
                 font-size: 0.75rem; /* Perkecil font tombol */
+            }
+            .card-scroll-content {
+                max-height: 150px; /* Atur tinggi maksimal kontainer scroll */
+                overflow-y: auto; /* Tampilkan scrollbar vertikal HANYA jika konten lebih panjang */
+                padding-right: 5px; /* Beri sedikit ruang untuk scrollbar */
+            }
+            
+            /* (Opsional) mempercantik tampilan scrollbar di browser Chrome/Safari */
+            .card-scroll-content::-webkit-scrollbar {
+                width: 5px;
+            }
+            .card-scroll-content::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .card-scroll-content::-webkit-scrollbar-thumb {
+                background-color: var(--border-color);
+                border-radius: 20px;
             }
         }
     </style>
@@ -219,7 +236,7 @@
         }
         
         dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
+    
         dataArray.forEach((item, index) => {
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
@@ -227,28 +244,44 @@
                 day: '2-digit', month: 'short', year: 'numeric', 
                 hour: '2-digit', minute: '2-digit', hour12: false
             });
-
+    
             const card = document.createElement('div');
             card.className = 'data-card';
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
-
+    
+            // --- BAGIAN INI DIUBAH ---
+            // Kita hanya render header terlebih dahulu
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
                     <span class="whatsapp">${item.wa}</span>
                     <span class="timestamp">${formattedDate} WIB</span>
                 </div>
-                <div class="card-body">
-                    <p class="message">${item.msg}</p>
-                </div>
-                <div class="card-actions">
-                    <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
-                </div>
             `;
+    
+            // --- BAGIAN BARU: Membuat wrapper untuk konten scroll ---
+            const scrollContent = document.createElement('div');
+            scrollContent.className = 'card-scroll-content';
+    
+            // Buat dan tambahkan card-body ke dalam wrapper scroll
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            cardBody.innerHTML = `<p class="message">${item.msg}</p>`;
+            scrollContent.appendChild(cardBody);
+    
+            // Buat dan tambahkan card-actions ke dalam wrapper scroll
+            const cardActions = document.createElement('div');
+            cardActions.className = 'card-actions';
             
-            const cardActions = card.querySelector('.card-actions');
+            const whatsappLinkElement = document.createElement('a');
+            whatsappLinkElement.href = whatsappLink;
+            whatsappLinkElement.target = '_blank';
+            whatsappLinkElement.className = 'action-btn whatsapp-btn';
+            whatsappLinkElement.textContent = 'Kirim ke WA';
+            cardActions.appendChild(whatsappLinkElement);
             
+            // Buat tombol-tombol lain
             const completeBtn = document.createElement('button');
             completeBtn.className = 'action-btn complete-btn';
             completeBtn.textContent = 'Lengkap';
@@ -261,15 +294,22 @@
             markBtn.className = 'action-btn mark-btn';
             markBtn.textContent = 'Tandai';
             markBtn.addEventListener('click', () => card.classList.toggle('marked'));
-
+    
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
             
+            // Masukkan semua tombol ke dalam card-actions
             cardActions.appendChild(completeBtn);
             cardActions.appendChild(markBtn);
             cardActions.appendChild(deleteBtn);
+    
+            // Masukkan card-actions ke dalam wrapper scroll
+            scrollContent.appendChild(cardActions);
+            
+            // Terakhir, masukkan wrapper scroll ke dalam card utama
+            card.appendChild(scrollContent);
             
             dataContainer.appendChild(card);
         });
