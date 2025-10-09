@@ -25,8 +25,8 @@
             --danger-hover: #c0392b;
             --success-hover: #229954;
             --accent-hover: #2980b9;
-            --completed-bg-light: #111111;
-            --completed-bg-dark: #111111;
+            --completed-bg-light: #0A5C36;
+            --completed-bg-dark: #0A5C36;
             --marked-bg-light: #fffbe6;
             --marked-bg-dark: #594c19;
         }
@@ -232,6 +232,12 @@
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
+    
+        // --- LANGKAH 1: BACA STATUS TERSIMPAN DARI LOCALSTORAGE ---
+        // Ambil data ID yang tersimpan, atau buat array kosong jika tidak ada.
+        const completedItems = JSON.parse(localStorage.getItem('completedItems')) || [];
+        const markedItems = JSON.parse(localStorage.getItem('markedItems')) || [];
+    
         if (!dataArray || dataArray.length === 0) {
             dataContainer.innerHTML = '<div class="no-data">Belum ada data atau tidak ada hasil pencarian.</div>';
             return;
@@ -252,7 +258,15 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
     
-            // --- STRUKTUR HTML DIKEMBALIKAN SEPERTI SEMULA (LEBIH SEDERHANA) ---
+            // --- LANGKAH 2: TERAPKAN STATUS SAAT KARTU DIBUAT ---
+            // Periksa apakah ID kartu ini ada di dalam array yang sudah kita baca.
+            if (completedItems.includes(item.id)) {
+                card.classList.add('completed');
+            }
+            if (markedItems.includes(item.id)) {
+                card.classList.add('marked');
+            }
+    
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
@@ -267,29 +281,56 @@
                 </div>
             `;
             
-            // Ambil elemen card-actions yang baru dibuat
             const cardActions = card.querySelector('.card-actions');
             
-            // Buat dan tambahkan tombol-tombol lain ke dalamnya
             const completeBtn = document.createElement('button');
             completeBtn.className = 'action-btn complete-btn';
             completeBtn.textContent = 'Lengkap';
-            completeBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                card.classList.toggle('completed');
-            });
             
             const markBtn = document.createElement('button');
             markBtn.className = 'action-btn mark-btn';
             markBtn.textContent = 'Tandai';
-            markBtn.addEventListener('click', () => card.classList.toggle('marked'));
+    
+            // --- LANGKAH 3: SIMPAN STATUS SAAT TOMBOL DIKLIK ---
+            completeBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                card.classList.toggle('completed');
+    
+                // Ambil daftar item 'completed' terbaru dari localStorage
+                let currentCompleted = JSON.parse(localStorage.getItem('completedItems')) || [];
+                if (card.classList.contains('completed')) {
+                    // Jika kartu sekarang completed, tambahkan ID-nya jika belum ada
+                    if (!currentCompleted.includes(item.id)) {
+                        currentCompleted.push(item.id);
+                    }
+                } else {
+                    // Jika tidak completed, hapus ID-nya dari daftar
+                    currentCompleted = currentCompleted.filter(id => id !== item.id);
+                }
+                // Simpan kembali daftar yang sudah diperbarui ke localStorage
+                localStorage.setItem('completedItems', JSON.stringify(currentCompleted));
+            });
+            
+            markBtn.addEventListener('click', () => {
+                card.classList.toggle('marked');
+                
+                // Logika yang sama untuk tombol 'Tandai'
+                let currentMarked = JSON.parse(localStorage.getItem('markedItems')) || [];
+                if (card.classList.contains('marked')) {
+                    if (!currentMarked.includes(item.id)) {
+                        currentMarked.push(item.id);
+                    }
+                } else {
+                    currentMarked = currentMarked.filter(id => id !== item.id);
+                }
+                localStorage.setItem('markedItems', JSON.stringify(currentMarked));
+            });
     
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
             
-            // Masukkan semua tombol ke dalam card-actions
             cardActions.appendChild(completeBtn);
             cardActions.appendChild(markBtn);
             cardActions.appendChild(deleteBtn);
