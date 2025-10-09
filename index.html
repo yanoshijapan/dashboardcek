@@ -106,15 +106,10 @@
         .action-btn:hover { transform: scale(1.05); }
         .whatsapp-btn { background-color: var(--success-color); }
         .whatsapp-btn:hover { background-color: var(--success-hover); }
-        ..complete-btn, .mark-btn {
-            background-color: var(--card-bg-color); /* Latar putih/gelap tergantung tema */
-            color: var(--text-primary); /* Teks hitam/putih tergantung tema */
-            border: 1px solid var(--text-primary);
-            opacity: 1; /* Hapus opacity lama */
-        }
-        .complete-btn:hover, .mark-btn:hover {
-            background-color: var(--text-primary); /* Balik warna saat disentuh */
-            color: var(--card-bg-color);
+        .complete-btn, .mark-btn {
+            background-color: var(--card-bg-color); /* Latar tetap mengikuti tema */
+            color: #000000; /* Warna font diatur permanen menjadi hitam */
+            border: 1px solid #dddddd; /* Border abu-abu muda agar tidak terlalu kontras */
         }
 
         .delete-btn { background-color: var(--danger-color); }
