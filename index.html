@@ -320,7 +320,7 @@
     
     function filterAndRender() {
         const searchTerm = searchInput.value.toLowerCase();
-        
+    
         if (!searchTerm) {
             renderCards(allData);
             return;
@@ -331,9 +331,9 @@
                 day: '2-digit', month: 'short', year: 'numeric'
             }).toLowerCase();
     
-            // [PERBAIKAN] Mengubah semua data menjadi string sebelum diproses
+            // Secara eksplisit mengubah semua data menjadi string sebelum diproses
             const nama = String(item.nama || '').toLowerCase();
-            const wa = String(item.wa || '').toLowerCase(); // <-- Baris ini memperbaiki error Anda
+            const wa = String(item.wa || '').toLowerCase(); // <-- Kode yang sudah benar
             const msg = String(item.msg || '').toLowerCase();
     
             return (
@@ -343,7 +343,7 @@
                 formattedDate.includes(searchTerm)
             );
         });
-        
+    
         renderCards(filteredData);
     }
     // === [DIUBAH] FUNGSI DELETE DENGAN LOGIKA UNDO ===
