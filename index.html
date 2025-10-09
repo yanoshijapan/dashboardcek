@@ -319,7 +319,6 @@
     }
     
     function filterAndRender() {
-        console.log("Data yang akan difilter:", allData);
         const searchTerm = searchInput.value.toLowerCase();
         
         if (!searchTerm) {
@@ -333,24 +332,22 @@
                 day: '2-digit', month: 'short', year: 'numeric'
             }).toLowerCase();
     
-            // [PERBAIKAN] Mengubah semua data menjadi string sebelum dicari
-            // (item.nama || '') -> Jika nama kosong, gunakan string kosong ''
-            // String(item.wa) -> Mengubah nomor WA (angka) menjadi string
+            // [INI BAGIAN PERBAIKANNYA]
+            // Secara eksplisit mengubah semua data menjadi string sebelum diproses
             const nama = String(item.nama || '').toLowerCase();
-            const wa = String(item.wa || '').toLowerCase();
-            const msg = String(item.msg || '').toLowerCase(); // Tambahan: Mencari di dalam pesan juga
+            const wa = String(item.wa || '').toLowerCase(); // <-- Baris ini memperbaiki error Anda
+            const msg = String(item.msg || '').toLowerCase();
     
             return (
                 nama.includes(searchTerm) ||
                 wa.includes(searchTerm) ||
-                msg.includes(searchTerm) || // Tambahan: Mencari di dalam pesan juga
+                msg.includes(searchTerm) ||
                 formattedDate.includes(searchTerm)
             );
         });
         
         renderCards(filteredData);
     }
-
     // === [DIUBAH] FUNGSI DELETE DENGAN LOGIKA UNDO ===
     function deleteEntry(entryId) {
         if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
