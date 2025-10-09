@@ -108,32 +108,26 @@
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
         @media (max-width: 768px) {
-    /* 1. Mengatur ulang tata letak utama */
             body {
-                padding: 0.75rem; /* Perkecil padding di sekeliling halaman */
+                padding: 0.75rem;
             }
             h1 {
-                font-size: 1.5rem; /* Perkecil judul utama */
+                font-size: 1.6rem;
             }
             .dashboard-header {
-                flex-direction: column; /* Buat header menjadi vertikal */
+                flex-direction: column;
                 align-items: flex-start;
                 gap: 0.75rem;
             }
             #search-input {
-                width: 100%; /* Buat input pencarian memenuhi lebar */
+                width: 100%;
             }
-        
-            /* 2. Mengubah kontainer data menjadi 3 kolom */
             .data-container {
-                /* Sesuai permintaan: menjadi 3 kolom di layar kecil */
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.5rem; /* Perkecil jarak antar kartu */
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
             }
-        
-            /* 3. Menyesuaikan ukuran konten di dalam kartu */
             .data-card {
-                padding: 0.75rem; /* Perkecil padding di dalam kartu */
+                padding: 0.75rem;
                 gap: 0.5rem;
                 border-radius: 8px;
             }
@@ -141,46 +135,42 @@
                 padding-bottom: 0.5rem;
             }
             .card-header .name {
-                font-size: 0.8rem; /* Perkecil font nama */
+                font-size: 0.8rem;
             }
             .card-header .whatsapp,
             .card-header .timestamp {
-                font-size: 0.65rem; /* Perkecil font nomor & tanggal */
+                font-size: 0.65rem;
+            }
+            .card-body {
+                max-height: 120px;
+                overflow-y: auto;
+                padding-right: 5px;
+            }
+            .card-body::-webkit-scrollbar {
+                width: 5px;
+            }
+            .card-body::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .card-body::-webkit-scrollbar-thumb {
+                background-color: var(--border-color);
+                border-radius: 20px;
             }
             .card-body .message {
-                font-size: 0.75rem; /* Perkecil font pesan */
+                font-size: 0.75rem;
                 line-height: 1.4;
             }
             .data-card.completed::after {
-                font-size: 2.5rem; /* Perkecil ikon centang */
+                font-size: 2.5rem;
             }
-        
-            /* 4. Mengatur ulang tombol agar lebih rapi */
             .card-actions {
-                flex-direction: column; /* Susun tombol dari atas ke bawah */
+                flex-direction: column;
                 gap: 0.5rem;
                 padding-top: 0.5rem;
             }
             .action-btn {
                 padding: 8px;
-                font-size: 0.75rem; /* Perkecil font tombol */
-            }
-            .card-scroll-content {
-                max-height: 150px; /* Atur tinggi maksimal kontainer scroll */
-                overflow-y: auto; /* Tampilkan scrollbar vertikal HANYA jika konten lebih panjang */
-                padding-right: 5px; /* Beri sedikit ruang untuk scrollbar */
-            }
-            
-            /* (Opsional) mempercantik tampilan scrollbar di browser Chrome/Safari */
-            .card-scroll-content::-webkit-scrollbar {
-                width: 5px;
-            }
-            .card-scroll-content::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            .card-scroll-content::-webkit-scrollbar-thumb {
-                background-color: var(--border-color);
-                border-radius: 20px;
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -250,38 +240,25 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
     
-            // --- BAGIAN INI DIUBAH ---
-            // Kita hanya render header terlebih dahulu
+            // --- STRUKTUR HTML DIKEMBALIKAN SEPERTI SEMULA (LEBIH SEDERHANA) ---
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
                     <span class="whatsapp">${item.wa}</span>
                     <span class="timestamp">${formattedDate} WIB</span>
                 </div>
+                <div class="card-body">
+                    <p class="message">${item.msg}</p>
+                </div>
+                <div class="card-actions">
+                    <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
+                </div>
             `;
-    
-            // --- BAGIAN BARU: Membuat wrapper untuk konten scroll ---
-            const scrollContent = document.createElement('div');
-            scrollContent.className = 'card-scroll-content';
-    
-            // Buat dan tambahkan card-body ke dalam wrapper scroll
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body';
-            cardBody.innerHTML = `<p class="message">${item.msg}</p>`;
-            scrollContent.appendChild(cardBody);
-    
-            // Buat dan tambahkan card-actions ke dalam wrapper scroll
-            const cardActions = document.createElement('div');
-            cardActions.className = 'card-actions';
             
-            const whatsappLinkElement = document.createElement('a');
-            whatsappLinkElement.href = whatsappLink;
-            whatsappLinkElement.target = '_blank';
-            whatsappLinkElement.className = 'action-btn whatsapp-btn';
-            whatsappLinkElement.textContent = 'Kirim ke WA';
-            cardActions.appendChild(whatsappLinkElement);
+            // Ambil elemen card-actions yang baru dibuat
+            const cardActions = card.querySelector('.card-actions');
             
-            // Buat tombol-tombol lain
+            // Buat dan tambahkan tombol-tombol lain ke dalamnya
             const completeBtn = document.createElement('button');
             completeBtn.className = 'action-btn complete-btn';
             completeBtn.textContent = 'Lengkap';
@@ -304,12 +281,6 @@
             cardActions.appendChild(completeBtn);
             cardActions.appendChild(markBtn);
             cardActions.appendChild(deleteBtn);
-    
-            // Masukkan card-actions ke dalam wrapper scroll
-            scrollContent.appendChild(cardActions);
-            
-            // Terakhir, masukkan wrapper scroll ke dalam card utama
-            card.appendChild(scrollContent);
             
             dataContainer.appendChild(card);
         });
