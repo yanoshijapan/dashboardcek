@@ -25,8 +25,10 @@
             --danger-hover: #c0392b;
             --success-hover: #229954;
             --accent-hover: #2980b9;
-            --marked-bg-light: #eaf6ff;
-            --marked-bg-dark: #2a3b5a;
+            --completed-bg-light: #e9ecef;
+            --completed-bg-dark: #343a40;
+            --marked-bg-light: #fffbe6;
+            --marked-bg-dark: #594c19;
         }
         body.dark-mode {
             --bg-color: #1a1a2e;
@@ -77,6 +79,12 @@
         .data-card.marked { background-color: var(--marked-bg-light); border-color: var(--accent-color); }
         body.dark-mode .data-card.marked { background-color: var(--marked-bg-dark); }
         
+        .data-card.completed {
+            background-color: var(--completed-bg-light);
+        }
+        body.dark-mode .data-card.completed {
+            background-color: var(--completed-bg-dark);
+        }
         .data-card.completed::after {
             content: '✔';
             position: absolute;
@@ -98,11 +106,16 @@
         .action-btn:hover { transform: scale(1.05); }
         .whatsapp-btn { background-color: var(--success-color); }
         .whatsapp-btn:hover { background-color: var(--success-hover); }
-        .mark-btn { background-color: var(--accent-color); }
-        .mark-btn:hover { background-color: var(--accent-hover); }
-
-        .complete-btn { background-color: var(--success-color); opacity: 0.9; }
-        .complete-btn:hover { background-color: var(--success-hover); opacity: 1;}
+        ..complete-btn, .mark-btn {
+            background-color: var(--card-bg-color); /* Latar putih/gelap tergantung tema */
+            color: var(--text-primary); /* Teks hitam/putih tergantung tema */
+            border: 1px solid var(--text-primary);
+            opacity: 1; /* Hapus opacity lama */
+        }
+        .complete-btn:hover, .mark-btn:hover {
+            background-color: var(--text-primary); /* Balik warna saat disentuh */
+            color: var(--card-bg-color);
+        }
 
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
@@ -123,7 +136,7 @@
                 width: 100%;
             }
             .data-container {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
                 gap: 0.5rem;
             }
             .data-card {
