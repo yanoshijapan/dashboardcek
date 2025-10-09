@@ -327,13 +327,11 @@
         }
     
         const filteredData = allData.filter(item => {
-            // Membuat format tanggal yang aman
             const formattedDate = new Date(item.timestamp).toLocaleString('id-ID', {
                 day: '2-digit', month: 'short', year: 'numeric'
             }).toLowerCase();
     
-            // [INI BAGIAN PERBAIKANNYA]
-            // Secara eksplisit mengubah semua data menjadi string sebelum diproses
+            // [PERBAIKAN] Mengubah semua data menjadi string sebelum diproses
             const nama = String(item.nama || '').toLowerCase();
             const wa = String(item.wa || '').toLowerCase(); // <-- Baris ini memperbaiki error Anda
             const msg = String(item.msg || '').toLowerCase();
