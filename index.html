@@ -17,7 +17,7 @@
             --card-bg-color: #ffffff;
             --text-primary: #2c3e50;
             --text-secondary: #576c7f;
-            --border-color: #e_a_e_c_f_0;
+            --border-color: #eaecf0;
             --shadow-color: rgba(44, 62, 80, 0.1);
             --accent-color: #3498db;
             --success-color: #27ae60;
@@ -25,12 +25,14 @@
             --danger-hover: #c0392b;
             --success-hover: #229954;
             --accent-hover: #2980b9;
+            --marked-bg-light: #eaf6ff;
+            --marked-bg-dark: #2a3b5a;
         }
         body.dark-mode {
             --bg-color: #1a1a2e;
             --card-bg-color: #16213e;
-            --text-primary: #e_a_e_c_f_0;
-            --text-secondary: #a_b_a_f_c_f;
+            --text-primary: #eaecf0;
+            --text-secondary: #abafcf;
             --border-color: #2c3e50;
             --shadow-color: rgba(0, 0, 0, 0.2);
         }
@@ -51,18 +53,32 @@
         input:checked + .slider { background-color: var(--accent-color); }
         input:checked + .slider:before { transform: translateX(24px); }
         .data-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .data-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s, box-shadow 0.3s; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
+        .data-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px var(--shadow-color); display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
         .data-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px var(--shadow-color); }
         .data-card.exiting { animation: fadeOutDown 0.4s ease-in forwards; }
+
+        /* GAYA BARU UNTUK KARTU YANG DITANDAI */
+        .data-card.marked { background-color: var(--marked-bg-light); border-color: var(--accent-color); }
+        body.dark-mode .data-card.marked { background-color: var(--marked-bg-dark); }
+
         .card-header { display: flex; flex-direction: column; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
         .card-header .name { font-size: 1.25rem; font-weight: 600; }
         .card-header .whatsapp { font-size: 0.9rem; color: var(--text-secondary); }
+        
+        /* GAYA BARU UNTUK TIMESTAMP */
+        .card-header .timestamp { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
+        
         .card-body .message { font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); word-break: break-word; }
         .card-actions { margin-top: auto; padding-top: 1rem; display: flex; gap: 10px; }
         .action-btn { flex-grow: 1; padding: 10px; border: none; border-radius: 8px; color: white; text-decoration: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: center; transition: background-color 0.2s, transform 0.2s; }
         .action-btn:hover { transform: scale(1.05); }
         .whatsapp-btn { background-color: var(--success-color); }
         .whatsapp-btn:hover { background-color: var(--success-hover); }
+        
+        /* GAYA BARU UNTUK TOMBOL TANDAI */
+        .mark-btn { background-color: var(--accent-color); }
+        .mark-btn:hover { background-color: var(--accent-hover); }
+        
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
@@ -120,15 +136,23 @@
             const encodedMessage = encodeURIComponent(item.msg);
             const whatsappLink = `https://wa.me/${item.wa}?text=${encodedMessage}`;
             
+            // --- PERUBAHAN 1: FORMAT TANGGAL ---
+            const formattedDate = new Date(item.timestamp).toLocaleString('id-ID', {
+                day: '2-digit', month: 'short', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit', hour12: false
+            });
+
             const card = document.createElement('div');
             card.className = 'data-card';
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 100}ms`;
 
+            // --- PERUBAHAN 2: TAMBAHKAN TANGGAL KE HTML ---
             card.innerHTML = `
                 <div class="card-header">
                     <span class="name">${item.nama}</span>
                     <span class="whatsapp">${item.wa}</span>
+                    <span class="timestamp">${formattedDate} WIB</span>
                 </div>
                 <div class="card-body">
                     <p class="message">${item.msg}</p>
@@ -138,11 +162,27 @@
                 </div>
             `;
             
+            // --- PERUBAHAN 3: BUAT DAN TAMBAHKAN TOMBOL TANDAI & HAPUS ---
+            const cardActions = card.querySelector('.card-actions');
+
+            // Buat Tombol Tandai
+            const markBtn = document.createElement('button');
+            markBtn.className = 'action-btn mark-btn';
+            markBtn.textContent = 'Tandai';
+            markBtn.addEventListener('click', () => {
+                card.classList.toggle('marked'); // Menambah/menghapus class 'marked'
+            });
+
+            // Buat Tombol Hapus
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
-            card.querySelector('.card-actions').appendChild(deleteBtn);
+            
+            // Tambahkan tombol ke dalam container actions
+            cardActions.appendChild(markBtn);
+            cardActions.appendChild(deleteBtn);
+            
             dataContainer.appendChild(card);
         });
     }
