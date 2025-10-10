@@ -327,7 +327,7 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
             
-            // [DIPERBAIKI] Logika pewarnaan terpusat yang benar
+            // [LOGIKA BENAR] Menerapkan kelas CSS berdasarkan status dari Firebase
             if (item.status) {
                 card.classList.add(item.status);
             }
@@ -362,7 +362,7 @@
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             
-            // [DIPERBAIKI] Event listener yang benar untuk aturan baru
+            // [LOGIKA BENAR] Mengatur status Firebase sesuai aturan baru
             completeBtn.addEventListener('click', (e) => {
                 const newStatus = item.status === 'status_completed_light' ? null : 'status_completed_light';
                 updateItemStatusInFirebase(item.id, newStatus);
