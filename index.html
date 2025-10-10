@@ -365,14 +365,25 @@
             
             // [LOGIKA BENAR] Mengatur status Firebase sesuai aturan baru
             completeBtn.addEventListener('click', (e) => {
-                console.log("Tombol 'Lengkap' diklik! Akan mengatur status menjadi: status_completed_light");
+                e.preventDefault(); // Mencegah browser melakukan aksi default yang tidak diinginkan
+            
+                // [LOGIKA DIPERBAIKI]
+                // Jika status SAAT INI adalah hijau muda, maka hapus statusnya (jadi tidak berwarna).
+                // Jika tidak, APAPUN statusnya (kuning, biru, atau kosong), UBAH menjadi hijau muda.
                 const newStatus = item.status === 'status_completed_light' ? null : 'status_completed_light';
+                
                 updateItemStatusInFirebase(item.id, newStatus);
                 updateSheetStatus(item, 'completed'); 
             });
             
-            markBtn.addEventListener('click', () => {
+            markBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // Mencegah browser melakukan aksi default yang tidak diinginkan
+            
+                // [LOGIKA DIPERBAIKI]
+                // Jika status SAAT INI adalah kuning muda, maka hapus statusnya.
+                // Jika tidak, APAPUN statusnya, UBAH menjadi kuning muda.
                 const newStatus = item.status === 'status_marked_light_yellow' ? null : 'status_marked_light_yellow';
+            
                 updateItemStatusInFirebase(item.id, newStatus);
                 updateSheetStatus(item, 'marked'); 
             });
