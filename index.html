@@ -308,7 +308,6 @@
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
-        
         if (!dataArray || dataArray.length === 0) {
             dataContainer.innerHTML = '<div class="no-data">Belum ada data.</div>';
             return;
@@ -328,14 +327,9 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
             
-            // [DIUBAH DI APP LAMA] Logika untuk integrasi visual dengan aplikasi baru
-            // Jika statusnya 'marked' (dari app ini) ATAU 'sudah_invoice' (dari app baru), warnai biru/default tandai.
+            // [DIPERBAIKI] Logika pewarnaan terpusat yang benar
             if (item.status) {
                 card.classList.add(item.status);
-            }
-            // Jika statusnya 'completed' (dari app ini) ATAU 'sudah_lunas' (dari app baru), warnai hijau.
-            else if (item.status === 'completed' || item.status === 'sudah_lunas') {
-                card.classList.add('completed');
             }
             
             card.innerHTML = `
@@ -356,7 +350,6 @@
             
             const cardActions = card.querySelector('.card-actions');
             
-            // Tombol dan logika di aplikasi lama tetap sama
             const completeBtn = document.createElement('button');
             completeBtn.className = 'action-btn complete-btn';
             completeBtn.textContent = 'Lengkap';
@@ -369,16 +362,17 @@
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             
+            // [DIPERBAIKI] Event listener yang benar untuk aturan baru
             completeBtn.addEventListener('click', (e) => {
-                const newStatus = item.status === 'completed' || item.status === 'sudah_lunas' ? null : 'completed';
+                const newStatus = item.status === 'status_completed_light' ? null : 'status_completed_light';
                 updateItemStatusInFirebase(item.id, newStatus);
-                updateSheetStatus(item, newStatus === 'completed' ? 'completed' : 'clear');
+                updateSheetStatus(item, 'completed'); 
             });
             
             markBtn.addEventListener('click', () => {
-                const newStatus = item.status === 'marked' || item.status === 'sudah_invoice' ? null : 'marked';
+                const newStatus = item.status === 'status_marked_light_yellow' ? null : 'status_marked_light_yellow';
                 updateItemStatusInFirebase(item.id, newStatus);
-                updateSheetStatus(item, newStatus === 'marked' ? 'marked' : 'clear');
+                updateSheetStatus(item, 'marked'); 
             });
     
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
