@@ -119,7 +119,38 @@
         .delete-btn { background-color: var(--danger-color); }
         .delete-btn:hover { background-color: var(--danger-hover); }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 3rem; font-size: 1.2rem; animation: fadeInUp 0.5s ease-out forwards; }
+
+        .message-container {
+            max-height: 120px; /* Tentukan tinggi maksimal kontainer chat */
+            overflow-y: auto;  /* Aktifkan scroll vertikal jika perlu */
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f9fafb; /* Warna latar sedikit berbeda */
+            border: 1px solid var(--border-color);
+            margin-top: 5px;
+        }
         
+        /* Style untuk scrollbar agar lebih modern (opsional) */
+        .message-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .message-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .message-container::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 10px;
+        }
+        
+        /* Penyesuaian untuk dark mode */
+        body.dark-mode .message-container {
+            background-color: rgba(0,0,0,0.2);
+        }
+        
+        /* Menghilangkan margin default pada paragraf di dalam kontainer */
+        .message-container .message {
+            margin: 0;
+        }
         /* === [BARU] CSS UNTUK NOTIFIKASI UNDO === */
         .undo-container {
             position: fixed;
@@ -267,7 +298,9 @@
                     <span class="timestamp">${formattedDate} WIB</span>
                 </div>
                 <div class="card-body">
-                    <p class="message">${item.msg}</p>
+                    <div class="message-container">
+                        <p class="message">${item.msg}</p>
+                    </div>
                 </div>
                 <div class="card-actions">
                     <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn">Kirim ke WA</a>
