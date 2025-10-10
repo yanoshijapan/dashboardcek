@@ -210,13 +210,17 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // === [BARU] URL WEB APP GOOGLE SCRIPT ANDA ===
+    // ⚠️ PENTING: Ganti dengan URL deployment Web App Anda yang sebenarnya
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwa2rGtI78JoZJLHzUdm448JIyobRnjpO2roBQ9CvYQSL_UOX9n_N8-JQvLWmAlV9Ee/exec';
+
     const dataContainer = document.getElementById('data-container');
     const themeToggle = document.getElementById('theme-toggle');
     const searchInput = document.getElementById('search-input');
 
     let allData = [];
 
-    // === [BARU] VARIABEL UNTUK FITUR UNDO ===
+    // Variabel untuk fitur undo
     let lastDeletedItem = null;
     let undoTimeout = null;
     const undoContainer = document.getElementById('undo-container');
@@ -280,27 +284,29 @@
             
             completeBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
+                const isNowCompleted = !card.classList.contains('completed');
                 card.classList.toggle('completed');
                 let currentCompleted = JSON.parse(localStorage.getItem('completedItems')) || [];
-                if (card.classList.contains('completed')) {
-                    if (!currentCompleted.includes(item.id)) {
-                        currentCompleted.push(item.id);
-                    }
+                if (isNowCompleted) {
+                    if (!currentCompleted.includes(item.id)) currentCompleted.push(item.id);
+                    updateSheetStatus(item, 'completed'); // <-- [DITAMBAHKAN] Kirim status ke sheet
                 } else {
                     currentCompleted = currentCompleted.filter(id => id !== item.id);
+                    updateSheetStatus(item, 'clear'); // <-- [DITAMBAHKAN] Kirim status hapus warna
                 }
                 localStorage.setItem('completedItems', JSON.stringify(currentCompleted));
             });
             
             markBtn.addEventListener('click', () => {
+                const isNowMarked = !card.classList.contains('marked');
                 card.classList.toggle('marked');
                 let currentMarked = JSON.parse(localStorage.getItem('markedItems')) || [];
-                if (card.classList.contains('marked')) {
-                    if (!currentMarked.includes(item.id)) {
-                        currentMarked.push(item.id);
-                    }
+                if (isNowMarked) {
+                    if (!currentMarked.includes(item.id)) currentMarked.push(item.id);
+                    updateSheetStatus(item, 'marked'); // <-- [DITAMBAHKAN] Kirim status ke sheet
                 } else {
                     currentMarked = currentMarked.filter(id => id !== item.id);
+                     updateSheetStatus(item, 'clear'); // <-- [DITAMBAHKAN] Kirim status hapus warna
                 }
                 localStorage.setItem('markedItems', JSON.stringify(currentMarked));
             });
@@ -318,6 +324,35 @@
         });
     }
     
+    // === [BARU] FUNGSI UNTUK MENGIRIM STATUS KE GOOGLE SHEET ===
+    function updateSheetStatus(item, status) {
+        if (!WEB_APP_URL || WEB_APP_URL === 'URL_WEB_APP_ANDA') {
+            console.error('URL Web App belum diatur di dalam script HTML.');
+            // alert('URL Web App belum diatur. Perubahan warna di Google Sheet tidak akan terjadi.');
+            return;
+        }
+
+        const payload = {
+            action: 'updateStatus',
+            timestamp: item.timestamp,
+            nama: item.nama,
+            wa: String(item.wa),
+            status: status // 'completed', 'marked', atau 'clear'
+        };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Diperlukan agar tidak terjadi error CORS
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(() => console.log(`Status '${status}' untuk '${item.nama}' dikirim ke Google Sheet.`))
+        .catch(error => console.error('Gagal mengirim status ke Google Sheet:', error));
+    }
+
+
     function filterAndRender() {
         const searchTerm = searchInput.value.toLowerCase();
     
@@ -331,9 +366,8 @@
                 day: '2-digit', month: 'short', year: 'numeric'
             }).toLowerCase();
     
-            // Secara eksplisit mengubah semua data menjadi string sebelum diproses
             const nama = String(item.nama || '').toLowerCase();
-            const wa = String(item.wa || '').toLowerCase(); // <-- Kode yang sudah benar
+            const wa = String(item.wa || '').toLowerCase();
             const msg = String(item.msg || '').toLowerCase();
     
             return (
@@ -346,7 +380,7 @@
     
         renderCards(filteredData);
     }
-    // === [DIUBAH] FUNGSI DELETE DENGAN LOGIKA UNDO ===
+
     function deleteEntry(entryId) {
         if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
             return;
@@ -354,27 +388,22 @@
         
         const entryRef = database.ref('notifications/' + entryId);
         
-        // 1. Baca data yang akan dihapus
         entryRef.once('value', (snapshot) => {
             const dataToDelete = snapshot.val();
             
             if (dataToDelete) {
-                // 2. Simpan data dan ID-nya untuk kemungkinan undo
                 lastDeletedItem = {
                     id: entryId,
                     data: dataToDelete
                 };
 
-                // 3. Hapus data dari Firebase
                 entryRef.remove().then(() => {
-                    // 4. Tampilkan notifikasi undo
                     showUndoNotification();
                 });
             }
         });
     }
 
-    // === [DIUBAH] FUNGSI CLEARALL DENGAN KONFIRMASI LEBIH AMAN ===
     function clearAllData() {
         const confirmationText = 'HAPUS SEMUA';
         const userInput = prompt(`PERINGATAN: Ini akan menghapus SEMUA data di dashboard secara permanen dan tidak dapat dibatalkan.\n\nUntuk melanjutkan, ketik "${confirmationText}" di bawah ini:`);
@@ -387,7 +416,6 @@
         }
     }
 
-    // === [BARU] FUNGSI UNTUK MENAMPILKAN NOTIFIKASI UNDO ===
     function showUndoNotification() {
         clearTimeout(undoTimeout);
         undoContainer.classList.add('show');
@@ -399,7 +427,6 @@
         }, 7000); 
     }
 
-    // === [BARU] FUNGSI UNTUK MENGEMBALIKAN DATA YANG DIHAPUS ===
     function undoDelete() {
         if (lastDeletedItem) {
             database.ref('notifications/' + lastDeletedItem.id).set(lastDeletedItem.data);
@@ -438,10 +465,9 @@
         themeToggle.addEventListener('change', toggleTheme);
         searchInput.addEventListener('input', filterAndRender);
         
-        // === [BARU] EVENT LISTENER UNTUK TOMBOL UNDO ===
         undoBtn.addEventListener('click', undoDelete); 
     });
 </script>
-
+    
 </body>
 </html>
