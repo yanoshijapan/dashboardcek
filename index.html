@@ -229,8 +229,10 @@
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
-        const completedItems = JSON.parse(localStorage.getItem('completedItems')) || [];
-        const markedItems = JSON.parse(localStorage.getItem('markedItems')) || [];
+        
+        // [DIHAPUS] localStorage tidak lagi digunakan untuk status 'completed' dan 'marked'
+        // const completedItems = JSON.parse(localStorage.getItem('completedItems')) || [];
+        // const markedItems = JSON.parse(localStorage.getItem('markedItems')) || [];
         
         if (!dataArray || dataArray.length === 0) {
             dataContainer.innerHTML = '<div class="no-data">Belum ada data atau tidak ada hasil pencarian.</div>';
@@ -251,10 +253,10 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
             
-            if (completedItems.includes(item.id)) {
+            // [DIUBAH] Tambahkan class 'completed' atau 'marked' berdasarkan properti 'status' dari item
+            if (item.status === 'completed') {
                 card.classList.add('completed');
-            }
-            if (markedItems.includes(item.id)) {
+            } else if (item.status === 'marked') {
                 card.classList.add('marked');
             }
             
@@ -282,33 +284,19 @@
             markBtn.className = 'action-btn mark-btn';
             markBtn.textContent = 'Tandai';
             
+            // [DIUBAH] Event listener sekarang mengupdate status langsung ke Firebase
             completeBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
-                const isNowCompleted = !card.classList.contains('completed');
-                card.classList.toggle('completed');
-                let currentCompleted = JSON.parse(localStorage.getItem('completedItems')) || [];
-                if (isNowCompleted) {
-                    if (!currentCompleted.includes(item.id)) currentCompleted.push(item.id);
-                    updateSheetStatus(item, 'completed'); // <-- [DITAMBAHKAN] Kirim status ke sheet
-                } else {
-                    currentCompleted = currentCompleted.filter(id => id !== item.id);
-                    updateSheetStatus(item, 'clear'); // <-- [DITAMBAHKAN] Kirim status hapus warna
-                }
-                localStorage.setItem('completedItems', JSON.stringify(currentCompleted));
+                const newStatus = item.status === 'completed' ? null : 'completed';
+                updateItemStatusInFirebase(item.id, newStatus);
+                updateSheetStatus(item, newStatus === 'completed' ? 'completed' : 'clear');
             });
             
+            // [DIUBAH] Event listener sekarang mengupdate status langsung ke Firebase
             markBtn.addEventListener('click', () => {
-                const isNowMarked = !card.classList.contains('marked');
-                card.classList.toggle('marked');
-                let currentMarked = JSON.parse(localStorage.getItem('markedItems')) || [];
-                if (isNowMarked) {
-                    if (!currentMarked.includes(item.id)) currentMarked.push(item.id);
-                    updateSheetStatus(item, 'marked'); // <-- [DITAMBAHKAN] Kirim status ke sheet
-                } else {
-                    currentMarked = currentMarked.filter(id => id !== item.id);
-                     updateSheetStatus(item, 'clear'); // <-- [DITAMBAHKAN] Kirim status hapus warna
-                }
-                localStorage.setItem('markedItems', JSON.stringify(currentMarked));
+                const newStatus = item.status === 'marked' ? null : 'marked';
+                updateItemStatusInFirebase(item.id, newStatus);
+                updateSheetStatus(item, newStatus === 'marked' ? 'marked' : 'clear');
             });
             
             const deleteBtn = document.createElement('button');
@@ -322,6 +310,14 @@
             
             dataContainer.appendChild(card);
         });
+    }
+    
+    // [BARU] Fungsi untuk mengupdate status item di Firebase
+    function updateItemStatusInFirebase(itemId, status) {
+        const itemRef = database.ref('notifications/' + itemId);
+        itemRef.update({
+            status: status 
+        }).catch(error => console.error("Gagal update status di Firebase:", error));
     }
     
     // === [BARU] FUNGSI UNTUK MENGIRIM STATUS KE GOOGLE SHEET ===
