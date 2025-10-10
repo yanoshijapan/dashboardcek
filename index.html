@@ -364,6 +364,7 @@
             
             // [LOGIKA BENAR] Mengatur status Firebase sesuai aturan baru
             completeBtn.addEventListener('click', (e) => {
+                console.log("Tombol 'Lengkap' diklik! Akan mengatur status menjadi: status_completed_light");
                 const newStatus = item.status === 'status_completed_light' ? null : 'status_completed_light';
                 updateItemStatusInFirebase(item.id, newStatus);
                 updateSheetStatus(item, 'completed'); 
