@@ -197,54 +197,6 @@
             .card-actions { flex-direction: row; flex-wrap: wrap; }
             .action-btn { flex-basis: 48%; }
         }
-        .status-completed-light {
-            background-color: #d9ead3; /* Hijau Muda */
-            color: #385d3a;
-        }
-        .status-completed-light .card-header { border-bottom-color: #b6d7a8; }
-        
-        /* 2. Kuning Muda (dari tombol "Tandai") */
-        .status-marked-light-yellow {
-            background-color: #fff2cc; /* Kuning Muda */
-            color: #785c0b;
-        }
-        .status-marked-light-yellow .card-header { border-bottom-color: #ffe599; }
-        
-        /* 3. Kuning Pekat (dari tombol "Sudah DP") */
-        .status-dp-dark-yellow {
-            background-color: #ffcc00; /* Kuning Pekat */
-            color: #333;
-        }
-        .status-dp-dark-yellow .card-header { border-bottom-color: rgba(0,0,0,0.2); }
-        
-        /* 4. Biru Terang (dari tombol "Sudah Invoice") */
-        .status-invoice-bright-blue {
-            background-color: #cfe2f3; /* Biru Terang */
-            color: #2a5273;
-        }
-        .status-invoice-bright-blue .card-header { border-bottom-color: #a4c2f4; }
-        
-        /* 5. Hijau Terang (dari tombol "Sudah Lunas") */
-        .status-paid-bright-green {
-            background-color: #b6d7a8; /* Hijau Terang */
-            color: #385d3a;
-        }
-        .status-paid-bright-green .card-header { border-bottom-color: #93c47d; }
-        
-        /* Penyesuaian teks untuk semua status agar mudah dibaca */
-        .status-completed-light .card-header .whatsapp,
-        .status-marked-light-yellow .card-header .whatsapp,
-        .status-dp-dark-yellow .card-header .whatsapp,
-        .status-invoice-bright-blue .card-header .whatsapp,
-        .status-paid-bright-green .card-header .whatsapp,
-        .status-completed-light .card-header .timestamp,
-        .status-marked-light-yellow .card-header .timestamp,
-        .status-dp-dark-yellow .card-header .timestamp,
-        .status-invoice-bright-blue .card-header .timestamp,
-        .status-paid-bright-green .card-header .timestamp {
-            color: inherit;
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
@@ -308,6 +260,7 @@
 
     function renderCards(dataArray) {
         dataContainer.innerHTML = '';
+        
         if (!dataArray || dataArray.length === 0) {
             dataContainer.innerHTML = '<div class="no-data">Belum ada data.</div>';
             return;
@@ -327,10 +280,14 @@
             card.id = `card-${item.id}`;
             card.style.animationDelay = `${index * 50}ms`;
             
-            // [LOGIKA BENAR] Menerapkan kelas CSS berdasarkan status dari Firebase
-            if (item.status) {
-                console.log(`Menerapkan status '${item.status}' ke kartu untuk '${item.nama}'`);
-                card.classList.add(item.status);
+            // [DIUBAH DI APP LAMA] Logika untuk integrasi visual dengan aplikasi baru
+            // Jika statusnya 'marked' (dari app ini) ATAU 'sudah_invoice' (dari app baru), warnai biru/default tandai.
+            if (item.status === 'marked' || item.status === 'sudah_invoice') {
+                card.classList.add('marked');
+            } 
+            // Jika statusnya 'completed' (dari app ini) ATAU 'sudah_lunas' (dari app baru), warnai hijau.
+            else if (item.status === 'completed' || item.status === 'sudah_lunas') {
+                card.classList.add('completed');
             }
             
             card.innerHTML = `
@@ -351,6 +308,7 @@
             
             const cardActions = card.querySelector('.card-actions');
             
+            // Tombol dan logika di aplikasi lama tetap sama
             const completeBtn = document.createElement('button');
             completeBtn.className = 'action-btn complete-btn';
             completeBtn.textContent = 'Lengkap';
@@ -363,29 +321,16 @@
             deleteBtn.className = 'action-btn delete-btn';
             deleteBtn.textContent = 'Hapus';
             
-            // [LOGIKA BENAR] Mengatur status Firebase sesuai aturan baru
             completeBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // Mencegah browser melakukan aksi default yang tidak diinginkan
-            
-                // [LOGIKA DIPERBAIKI]
-                // Jika status SAAT INI adalah hijau muda, maka hapus statusnya (jadi tidak berwarna).
-                // Jika tidak, APAPUN statusnya (kuning, biru, atau kosong), UBAH menjadi hijau muda.
-                const newStatus = item.status === 'status_completed_light' ? null : 'status_completed_light';
-                
+                const newStatus = item.status === 'completed' || item.status === 'sudah_lunas' ? null : 'completed';
                 updateItemStatusInFirebase(item.id, newStatus);
-                updateSheetStatus(item, 'completed'); 
+                updateSheetStatus(item, newStatus === 'completed' ? 'completed' : 'clear');
             });
             
-            markBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // Mencegah browser melakukan aksi default yang tidak diinginkan
-            
-                // [LOGIKA DIPERBAIKI]
-                // Jika status SAAT INI adalah kuning muda, maka hapus statusnya.
-                // Jika tidak, APAPUN statusnya, UBAH menjadi kuning muda.
-                const newStatus = item.status === 'status_marked_light_yellow' ? null : 'status_marked_light_yellow';
-            
+            markBtn.addEventListener('click', () => {
+                const newStatus = item.status === 'marked' || item.status === 'sudah_invoice' ? null : 'marked';
                 updateItemStatusInFirebase(item.id, newStatus);
-                updateSheetStatus(item, 'marked'); 
+                updateSheetStatus(item, newStatus === 'marked' ? 'marked' : 'clear');
             });
     
             deleteBtn.addEventListener('click', () => deleteEntry(item.id));
