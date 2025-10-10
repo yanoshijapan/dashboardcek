@@ -197,6 +197,54 @@
             .card-actions { flex-direction: row; flex-wrap: wrap; }
             .action-btn { flex-basis: 48%; }
         }
+        .status-completed-light {
+            background-color: #d9ead3; /* Hijau Muda */
+            color: #385d3a;
+        }
+        .status-completed-light .card-header { border-bottom-color: #b6d7a8; }
+        
+        /* 2. Kuning Muda (dari tombol "Tandai") */
+        .status-marked-light-yellow {
+            background-color: #fff2cc; /* Kuning Muda */
+            color: #785c0b;
+        }
+        .status-marked-light-yellow .card-header { border-bottom-color: #ffe599; }
+        
+        /* 3. Kuning Pekat (dari tombol "Sudah DP") */
+        .status-dp-dark-yellow {
+            background-color: #ffcc00; /* Kuning Pekat */
+            color: #333;
+        }
+        .status-dp-dark-yellow .card-header { border-bottom-color: rgba(0,0,0,0.2); }
+        
+        /* 4. Biru Terang (dari tombol "Sudah Invoice") */
+        .status-invoice-bright-blue {
+            background-color: #cfe2f3; /* Biru Terang */
+            color: #2a5273;
+        }
+        .status-invoice-bright-blue .card-header { border-bottom-color: #a4c2f4; }
+        
+        /* 5. Hijau Terang (dari tombol "Sudah Lunas") */
+        .status-paid-bright-green {
+            background-color: #b6d7a8; /* Hijau Terang */
+            color: #385d3a;
+        }
+        .status-paid-bright-green .card-header { border-bottom-color: #93c47d; }
+        
+        /* Penyesuaian teks untuk semua status agar mudah dibaca */
+        .status-completed-light .card-header .whatsapp,
+        .status-marked-light-yellow .card-header .whatsapp,
+        .status-dp-dark-yellow .card-header .whatsapp,
+        .status-invoice-bright-blue .card-header .whatsapp,
+        .status-paid-bright-green .card-header .whatsapp,
+        .status-completed-light .card-header .timestamp,
+        .status-marked-light-yellow .card-header .timestamp,
+        .status-dp-dark-yellow .card-header .timestamp,
+        .status-invoice-bright-blue .card-header .timestamp,
+        .status-paid-bright-green .card-header .timestamp {
+            color: inherit;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -282,9 +330,9 @@
             
             // [DIUBAH DI APP LAMA] Logika untuk integrasi visual dengan aplikasi baru
             // Jika statusnya 'marked' (dari app ini) ATAU 'sudah_invoice' (dari app baru), warnai biru/default tandai.
-            if (item.status === 'marked' || item.status === 'sudah_invoice') {
-                card.classList.add('marked');
-            } 
+            if (item.status) {
+                card.classList.add(item.status);
+            }
             // Jika statusnya 'completed' (dari app ini) ATAU 'sudah_lunas' (dari app baru), warnai hijau.
             else if (item.status === 'completed' || item.status === 'sudah_lunas') {
                 card.classList.add('completed');
