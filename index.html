@@ -329,6 +329,7 @@
             
             // [LOGIKA BENAR] Menerapkan kelas CSS berdasarkan status dari Firebase
             if (item.status) {
+                console.log(`Menerapkan status '${item.status}' ke kartu untuk '${item.nama}'`);
                 card.classList.add(item.status);
             }
             
